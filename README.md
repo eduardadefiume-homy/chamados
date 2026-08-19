@@ -115,6 +115,23 @@ O provisionador **não** cria formulários, regras de negócio nem notificaçõe
 | 11 | Endereço remetente e caixa coletora definitivos | Notificações | Duda |
 | 12 | PHP, MariaDB, servidor web e plugins instalados | Preflight | `Invoke-GlpiDiscover.ps1` resolve parte |
 
+## Liberando o acesso ao GLPI a partir do Claude Code
+
+Nesta sessão, `chamados.homyquimica.com.br` foi recusado pela política de rede do ambiente (403 no CONNECT do proxy). Para que uma sessão futura consiga rodar o provisionador direto contra a API:
+
+1. Em [claude.ai/code](https://claude.ai/code), abra o seletor de ambiente (ícone de nuvem) e edite o ambiente usado — ou crie um novo com **Add cloud environment**.
+2. Em **Network access**, troque de **Trusted** para **Custom**.
+3. Em **Allowed domains**, acrescente uma linha:
+
+   ```text
+   chamados.homyquimica.com.br
+   ```
+
+4. Marque **Also include default list of common package managers** — sem isso o ambiente perde o acesso aos registries de pacote.
+5. Salve e **abra uma sessão nova**. A política é aplicada na criação da sessão; a atual continua bloqueada.
+
+O tráfego de GitHub e o dos conectores MCP (Microsoft 365) usam caminhos próprios e não passam por essa allowlist — por isso a leitura do SharePoint funcionou mesmo com o GLPI bloqueado.
+
 ## Limites deste levantamento
 
 - **Planner não foi lido ao vivo.** O conector Microsoft 365 desta sessão expõe Outlook, Teams, SharePoint e OneDrive — não expõe Planner nem a estrutura de perguntas do Forms. Buckets e cards vieram da documentação e foram confirmados por Duda; a contagem de cards ativos continua pendente.
