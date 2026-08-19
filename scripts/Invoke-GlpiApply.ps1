@@ -49,6 +49,24 @@ function Get-Prop {
     return $Default
 }
 
+# Renomeacoes que -WhatIf apenas simulou. Sem isto o passo seguinte olharia o GLPI,
+# veria o nome antigo e anunciaria a criacao de um objeto novo — a simulacao
+# relataria a duplicata que a reconciliacao acabou de dizer que evita.
+$simRenames = [System.Collections.Generic.List[object]]::new()
+
+function Get-GlpiItemsSim {
+    <# Lista os itens e aplica por cima as renomeacoes ainda simuladas. #>
+    param([Parameter(Mandatory)][string]$ItemType, [switch]$Recursive)
+    $itens = if ($Recursive) { Get-GlpiItems -ItemType $ItemType -Recursive } else { Get-GlpiItems -ItemType $ItemType }
+    foreach ($r in $simRenames) {
+        if ($r.ItemType -ne $ItemType) { continue }
+        foreach ($i in $itens) {
+            if ((Get-Prop $i 'name') -eq $r.De) { $i.name = $r.Para }
+        }
+    }
+    return $itens
+}
+
 try {
     New-GlpiSession -BaseUrl $BaseUrl | Out-Null
 
@@ -122,9 +140,43 @@ try {
     $rootEnt  = if ($entIds.ContainsKey('Homy Química'))      { $entIds['Homy Química'] }      else { 0 }
     Write-Host "Entidade de TI: id $tiEntity | Raiz: id $rootEnt"
 
+    # ---------- 1.5 RECONCILIACAO DE NOMES ----------
+    # Roda ANTES de grupos e categorias. Um objeto que ja existe com o nome antigo
+    # precisa ser renomeado, nao recriado: Set-GlpiItemIdempotent procura por nome,
+    # entao 'TI | Gestao' e 'TI | Gestão' sao dois objetos distintos para ele, e o
+    # passo seguinte criaria a duplicata que esta etapa existe para evitar.
+    if ($bp.PSObject.Properties.Name -contains 'reconciliacao') {
+        Write-Host "`
+=== 1.5 RECONCILIACAO DE NOMES ===" -ForegroundColor Cyan
+        Write-Host $bp.reconciliacao.motivo
+        foreach ($ren in $bp.reconciliacao.renomear) {
+            $cacheRen = Get-GlpiItems -ItemType $ren.itemtype -Recursive
+            $antigo = Find-GlpiItem -ItemType $ren.itemtype -Name $ren.de   -Cache $cacheRen
+            $novo   = Find-GlpiItem -ItemType $ren.itemtype -Name $ren.para -Cache $cacheRen
+
+            if ($null -ne $antigo -and $null -ne $novo) {
+                throw ("AMBIGUIDADE: '$($ren.itemtype)' existe com os DOIS nomes — " +
+                       "'$($ren.de)' (id $($antigo.id)) e '$($ren.para)' (id $($novo.id)). " +
+                       "Alguem ja criou a duplicata. Consolide manualmente antes de continuar.")
+            }
+            if ($null -eq $antigo) {
+                $estado = if ($null -ne $novo) { "ja renomeado (id $($novo.id))" } else { 'nao existe' }
+                Add-Change ([pscustomobject]@{ ItemType = $ren.itemtype; Name = $ren.para; Id = (Get-Prop $novo 'id'); Action = 'Inalterado'; Changed = $estado })
+                continue
+            }
+            if ($PSCmdlet.ShouldProcess("$($ren.itemtype) '$($ren.de)' (id $($antigo.id))", "RENOMEAR para '$($ren.para)'")) {
+                Invoke-GlpiRequest -Path $ren.itemtype -Method Put -Body @{ input = @{ id = $antigo.id; name = $ren.para } } | Out-Null
+                Add-Change ([pscustomobject]@{ ItemType = $ren.itemtype; Name = $ren.para; Id = $antigo.id; Action = 'Renomeado'; Changed = "name: '$($ren.de)' -> '$($ren.para)'" })
+            } else {
+                $simRenames.Add([pscustomobject]@{ ItemType = $ren.itemtype; De = $ren.de; Para = $ren.para })
+                Add-Change ([pscustomobject]@{ ItemType = $ren.itemtype; Name = $ren.para; Id = $antigo.id; Action = 'Renomearia (WhatIf)'; Changed = "name: '$($ren.de)' -> '$($ren.para)'" })
+            }
+        }
+    }
+
     # ---------- 2. GRUPOS ----------
     Write-Host "`n=== 2. GRUPOS TECNICOS ===" -ForegroundColor Cyan
-    $grpCache = Get-GlpiItems -ItemType 'Group'
+    $grpCache = Get-GlpiItemsSim -ItemType 'Group' -Recursive
     foreach ($g in $bp.technical_groups) {
         Add-Change (Set-GlpiItemIdempotent -ItemType 'Group' -Fields @{
             name = $g.name; comment = $g.purpose; entities_id = $tiEntity
@@ -164,7 +216,7 @@ try {
 
     # ---------- 5. CATEGORIAS ITIL ----------
     Write-Host "`n=== 5. CATEGORIAS ITIL ===" -ForegroundColor Cyan
-    $catCache = Get-GlpiItems -ItemType 'ITILCategory'
+    $catCache = Get-GlpiItemsSim -ItemType 'ITILCategory' -Recursive
     foreach ($c in $bp.itil_categories) {
         $r = Set-GlpiItemIdempotent -ItemType 'ITILCategory' -Fields @{
             name = $c.name; entities_id = $tiEntity; is_recursive = 1
@@ -173,7 +225,7 @@ try {
         $filhos = @(Get-Prop $c 'children' @())
         if ($filhos.Count -eq 0) { continue }
 
-        $catCache = Get-GlpiItems -ItemType 'ITILCategory'
+        $catCache = Get-GlpiItemsSim -ItemType 'ITILCategory' -Recursive
         $parent = Find-GlpiItem -ItemType 'ITILCategory' -Name $c.name -EntityId $tiEntity -Cache $catCache
 
         if ($null -eq $parent) {
@@ -197,7 +249,7 @@ try {
                 name = $child; entities_id = $tiEntity; is_recursive = 1; itilcategories_id = $parent.id
             } -EntityId $tiEntity -Cache $catCache)
         }
-        $catCache = Get-GlpiItems -ItemType 'ITILCategory'
+        $catCache = Get-GlpiItemsSim -ItemType 'ITILCategory' -Recursive
     }
 
     # ---------- 6. CALENDARIO ----------

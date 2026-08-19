@@ -9,124 +9,417 @@
     "release_corrigida_atual": "11.0.8 (24/06/2026)",
     "observacao": "11.0.8 corrige RCE no importador de formularios (CVE-2026-48482) e desvio de MFA (CVE-2026-52848). Nenhuma 11.0.x posterior publicada ate 19/08/2026. Reconfirmar antes de importar formulario ou atualizar."
   },
-
   "entities": [
-    { "name": "Homy Química", "role": "raiz", "phase": "atual" },
-    { "name": "Service Desk - TI", "parent": "Homy Química", "role": "prestadora", "phase": "atual" },
-    { "name": "Service Desk - RH", "parent": "Homy Química", "role": "prestadora", "phase": "futura" }
+    {
+      "name": "Homy Química",
+      "role": "raiz",
+      "phase": "atual"
+    },
+    {
+      "name": "Service Desk - TI",
+      "parent": "Homy Química",
+      "role": "prestadora",
+      "phase": "atual"
+    },
+    {
+      "name": "Service Desk - RH",
+      "parent": "Homy Química",
+      "role": "prestadora",
+      "phase": "futura"
+    }
   ],
-
   "calendar": {
     "name": "Comercial Homy - TI",
     "entity": "Homy Química",
     "segments": [
-      { "day": "monday",    "begin": "07:45", "end": "17:10" },
-      { "day": "tuesday",   "begin": "07:45", "end": "17:10" },
-      { "day": "wednesday", "begin": "07:45", "end": "17:10" },
-      { "day": "thursday",  "begin": "07:45", "end": "17:10" },
-      { "day": "friday",    "begin": "07:45", "end": "17:10" }
+      {
+        "day": "monday",
+        "begin": "07:45",
+        "end": "17:10"
+      },
+      {
+        "day": "tuesday",
+        "begin": "07:45",
+        "end": "17:10"
+      },
+      {
+        "day": "wednesday",
+        "begin": "07:45",
+        "end": "17:10"
+      },
+      {
+        "day": "thursday",
+        "begin": "07:45",
+        "end": "17:10"
+      },
+      {
+        "day": "friday",
+        "begin": "07:45",
+        "end": "17:10"
+      }
     ],
     "minutos_por_dia_util": 565,
     "pendencia": "Confirmar se ha intervalo de almoco a excluir do relogio de SLA. Se houver, dividir cada dia em dois segmentos e recalcular a coluna 'dias uteis equivalentes' do SLA.",
     "holidays_pendente": "Feriados nacionais, estaduais e o calendario de recesso da Homy ainda nao foram informados. SLA nao entra em producao sem eles."
   },
-
   "technical_groups": [
-    { "name": "TI | Triagem",                    "members": ["Duda", "Fabia Garcia"], "purpose": "Entrada generica, reclassificacao e fallback do formulario Outro" },
-    { "name": "TI | Infraestrutura",             "members": ["Mateus Tardivo"],       "purpose": "Computador, notebook, perifericos, rede, Wi-Fi, VPN, predial e CFTV" },
-    { "name": "TI | Sistemas Protheus",          "members": ["André"],                "purpose": "Protheus: erro, parametrizacao, relatorio, acesso e customizacao" },
-    { "name": "TI | Sistemas Fluig e Transmite", "members": ["André", "Duda"],        "purpose": "Fluig e Transmite. Separado de Protheus por volume e competencia distintos" },
-    { "name": "TI | Microsoft 365 e Automação",  "members": ["Duda"],                 "purpose": "M365, Power Platform, GLPI, automacoes" },
-    { "name": "TI | Acessos e Identidade",       "members": ["Duda", "Mateus Tardivo"], "purpose": "Contas, senha, MFA, rede F:, permissoes. Fila com aprovacao obrigatoria" },
-    { "name": "TI | Gestão",                     "members": ["Fabia Garcia", "Duda"], "purpose": "Escalonamento, indicadores e aprovacao tecnica" }
+    {
+      "name": "TI | Triagem",
+      "members": [
+        "Duda",
+        "Fabia Garcia"
+      ],
+      "purpose": "Entrada generica, reclassificacao e fallback do formulario Outro"
+    },
+    {
+      "name": "TI | Infraestrutura",
+      "members": [
+        "Mateus Tardivo"
+      ],
+      "purpose": "Computador, notebook, perifericos, rede, Wi-Fi, VPN, predial e CFTV"
+    },
+    {
+      "name": "TI | Sistemas Protheus",
+      "members": [
+        "André"
+      ],
+      "purpose": "Protheus: erro, parametrizacao, relatorio, acesso e customizacao"
+    },
+    {
+      "name": "TI | Sistemas Fluig e Transmite",
+      "members": [
+        "André",
+        "Duda"
+      ],
+      "purpose": "Fluig e Transmite. Separado de Protheus por volume e competencia distintos"
+    },
+    {
+      "name": "TI | Microsoft 365 e Automação",
+      "members": [
+        "Duda"
+      ],
+      "purpose": "M365, Power Platform, GLPI, automacoes"
+    },
+    {
+      "name": "TI | Acessos e Identidade",
+      "members": [
+        "Duda",
+        "Mateus Tardivo"
+      ],
+      "purpose": "Contas, senha, MFA, rede F:, permissoes. Fila com aprovacao obrigatoria"
+    },
+    {
+      "name": "TI | Gestão",
+      "members": [
+        "Fabia Garcia",
+        "Duda"
+      ],
+      "purpose": "Escalonamento, indicadores e aprovacao tecnica"
+    }
   ],
-
   "organizational_groups": {
     "prefixo": "Setor | ",
     "uso": "Grupo do solicitante. Preenchido no cadastro do usuario. Base das regras de roteamento e de aprovacao.",
     "setores": [
-      "Almoxarifado Insumos / Matéria Prima", "Comercial", "Contabilidade", "Controladoria",
-      "Custos", "Diretoria Administrativa", "Diretoria Presidencial", "Diretoria Técnica",
-      "Expedição", "Faturamento / Logística", "Financeiro", "Fiscal", "Gerência Geral",
-      "HomyTec", "Laboratório", "Manutenção", "Marketing", "PCP", "Portaria", "Produção",
-      "Qualidade", "RH", "Recepção", "SGI", "Suprimentos", "TI"
+      "Almoxarifado Insumos / Matéria Prima",
+      "Comercial",
+      "Contabilidade",
+      "Controladoria",
+      "Custos",
+      "Diretoria Administrativa",
+      "Diretoria Presidencial",
+      "Diretoria Técnica",
+      "Expedição",
+      "Faturamento / Logística",
+      "Financeiro",
+      "Fiscal",
+      "Gerência Geral",
+      "HomyTec",
+      "Laboratório",
+      "Manutenção",
+      "Marketing",
+      "PCP",
+      "Portaria",
+      "Produção",
+      "Qualidade",
+      "RH",
+      "Recepção",
+      "SGI",
+      "Suprimentos",
+      "TI"
     ],
     "origem": "26 setores distintos observados na base real de 627 chamados (Chamados de TI - Homy.xlsx, aba Resumo por Colaborador, base ate 11/08/2026)"
   },
-
   "approver_groups": {
     "prefixo": "Gestores | ",
     "uso": "Destino da validacao nativa do GLPI. Um grupo por setor, contendo o gestor daquele setor. Validacao dirigida a grupo permite que qualquer membro aprove, evitando bloqueio por ferias.",
     "pendencia": "Mapa setor -> gestor ainda nao informado. Preencher blueprint/setores-gestores.csv antes de ativar a validacao."
   },
-
   "itil_categories": [
-    { "name": "Sistemas",                      "children": ["Protheus", "Fluig", "Transmite", "Outro sistema"], "group": "variavel" },
-    { "name": "Infraestrutura",                "children": ["Computador / Notebook", "Periféricos", "Internet / Wi-Fi / Rede / VPN", "Predial / CFTV"], "group": "TI | Infraestrutura" },
-    { "name": "Microsoft 365 e Automação",     "children": ["Outlook / E-mail", "Teams", "OneDrive / SharePoint", "Power Platform", "GLPI"], "group": "TI | Microsoft 365 e Automação" },
-    { "name": "Acessos e Permissões",          "children": ["Conta e senha", "MFA", "Rede de arquivos (F:)", "Permissao em sistema"], "group": "TI | Acessos e Identidade" },
-    { "name": "Ciclo de Vida do Colaborador",  "children": ["Admissão", "Mudança de setor", "Desligamento"], "group": "TI | Triagem" },
-    { "name": "Compras e Fornecedores",        "children": ["Compra / NF / Rateio", "Chamado com fornecedor"], "group": "TI | Triagem" },
-    { "name": "Uso interno do TI",             "children": [], "group": "TI | Triagem" },
-    { "name": "Outro assunto de TI",           "children": [], "group": "TI | Triagem" }
+    {
+      "name": "Sistemas",
+      "children": [
+        "Protheus",
+        "Fluig",
+        "Transmite",
+        "Outro sistema"
+      ],
+      "group": "variavel"
+    },
+    {
+      "name": "Infraestrutura",
+      "children": [
+        "Computador / Notebook",
+        "Periféricos",
+        "Internet / Wi-Fi / Rede / VPN",
+        "Predial / CFTV"
+      ],
+      "group": "TI | Infraestrutura"
+    },
+    {
+      "name": "Microsoft 365 e Automação",
+      "children": [
+        "Outlook / E-mail",
+        "Teams",
+        "OneDrive / SharePoint",
+        "Power Platform",
+        "GLPI"
+      ],
+      "group": "TI | Microsoft 365 e Automação"
+    },
+    {
+      "name": "Acessos e Permissões",
+      "children": [
+        "Conta e senha",
+        "MFA",
+        "Rede de arquivos (F:)",
+        "Permissao em sistema"
+      ],
+      "group": "TI | Acessos e Identidade"
+    },
+    {
+      "name": "Ciclo de Vida do Colaborador",
+      "children": [
+        "Admissão",
+        "Mudança de setor",
+        "Desligamento"
+      ],
+      "group": "TI | Triagem"
+    },
+    {
+      "name": "Compras e Fornecedores",
+      "children": [
+        "Compra / NF / Rateio",
+        "Chamado com fornecedor"
+      ],
+      "group": "TI | Triagem"
+    },
+    {
+      "name": "Uso interno do TI",
+      "children": [],
+      "group": "TI | Triagem"
+    },
+    {
+      "name": "Outro assunto de TI",
+      "children": [],
+      "group": "TI | Triagem"
+    }
   ],
-
   "priority_matrix": {
     "principio": "Prioridade e calculada por impacto x urgencia. O solicitante nunca rotula a propria prioridade.",
     "evidencia": "No Forms antigo, 101 de 287 respostas com prioridade preenchida (35%) se autoavaliaram como Alta (Impede o trabalho). Vies de autoavaliacao confirmado em duas amostras independentes (33% em 580 respostas, 35% em 287).",
     "impacto_derivado_de": "Pergunta 'Quantas pessoas foram afetadas?'",
     "impacto": [
-      { "resposta": "Só eu",            "glpi_impact": 2, "rotulo": "Baixo" },
-      { "resposta": "Meu setor",        "glpi_impact": 3, "rotulo": "Médio" },
-      { "resposta": "Múltiplos setores","glpi_impact": 4, "rotulo": "Alto" },
-      { "resposta": "Empresa toda",     "glpi_impact": 5, "rotulo": "Muito alto" }
+      {
+        "resposta": "Só eu",
+        "glpi_impact": 2,
+        "rotulo": "Baixo"
+      },
+      {
+        "resposta": "Meu setor",
+        "glpi_impact": 3,
+        "rotulo": "Médio"
+      },
+      {
+        "resposta": "Múltiplos setores",
+        "glpi_impact": 4,
+        "rotulo": "Alto"
+      },
+      {
+        "resposta": "Empresa toda",
+        "glpi_impact": 5,
+        "rotulo": "Muito alto"
+      }
     ],
     "urgencia_derivada_de": "Pergunta 'Seu trabalho esta totalmente parado por causa disso?' combinada com o tipo de requisicao",
     "urgencia": [
-      { "condicao": "Incidente e trabalho totalmente parado", "glpi_urgency": 4, "rotulo": "Alta" },
-      { "condicao": "Incidente sem parada total",             "glpi_urgency": 3, "rotulo": "Média" },
-      { "condicao": "Requisição planejada",                   "glpi_urgency": 2, "rotulo": "Baixa" },
-      { "condicao": "Dúvida, melhoria ou uso interno do TI",  "glpi_urgency": 1, "rotulo": "Muito baixa" }
+      {
+        "condicao": "Incidente e trabalho totalmente parado",
+        "glpi_urgency": 4,
+        "rotulo": "Alta"
+      },
+      {
+        "condicao": "Incidente sem parada total",
+        "glpi_urgency": 3,
+        "rotulo": "Média"
+      },
+      {
+        "condicao": "Requisição planejada",
+        "glpi_urgency": 2,
+        "rotulo": "Baixa"
+      },
+      {
+        "condicao": "Dúvida, melhoria ou uso interno do TI",
+        "glpi_urgency": 1,
+        "rotulo": "Muito baixa"
+      }
     ],
     "resultado": [
-      { "urgencia": 4, "impacto": 5, "prioridade": 5, "rotulo": "P1 Crítica" },
-      { "urgencia": 4, "impacto": 4, "prioridade": 5, "rotulo": "P1 Crítica" },
-      { "urgencia": 4, "impacto": 3, "prioridade": 4, "rotulo": "P2 Alta" },
-      { "urgencia": 4, "impacto": 2, "prioridade": 3, "rotulo": "P3 Média" },
-      { "urgencia": 3, "impacto": 5, "prioridade": 4, "rotulo": "P2 Alta" },
-      { "urgencia": 3, "impacto": 4, "prioridade": 4, "rotulo": "P2 Alta" },
-      { "urgencia": 3, "impacto": 3, "prioridade": 3, "rotulo": "P3 Média" },
-      { "urgencia": 3, "impacto": 2, "prioridade": 3, "rotulo": "P3 Média" },
-      { "urgencia": 2, "impacto": 5, "prioridade": 4, "rotulo": "P2 Alta" },
-      { "urgencia": 2, "impacto": 4, "prioridade": 3, "rotulo": "P3 Média" },
-      { "urgencia": 2, "impacto": 3, "prioridade": 2, "rotulo": "P4 Baixa" },
-      { "urgencia": 2, "impacto": 2, "prioridade": 2, "rotulo": "P4 Baixa" },
-      { "urgencia": 1, "impacto": 2, "prioridade": 1, "rotulo": "P5 Muito baixa" },
-      { "urgencia": 1, "impacto": 3, "prioridade": 2, "rotulo": "P4 Baixa" }
+      {
+        "urgencia": 4,
+        "impacto": 5,
+        "prioridade": 5,
+        "rotulo": "P1 Crítica"
+      },
+      {
+        "urgencia": 4,
+        "impacto": 4,
+        "prioridade": 5,
+        "rotulo": "P1 Crítica"
+      },
+      {
+        "urgencia": 4,
+        "impacto": 3,
+        "prioridade": 4,
+        "rotulo": "P2 Alta"
+      },
+      {
+        "urgencia": 4,
+        "impacto": 2,
+        "prioridade": 3,
+        "rotulo": "P3 Média"
+      },
+      {
+        "urgencia": 3,
+        "impacto": 5,
+        "prioridade": 4,
+        "rotulo": "P2 Alta"
+      },
+      {
+        "urgencia": 3,
+        "impacto": 4,
+        "prioridade": 4,
+        "rotulo": "P2 Alta"
+      },
+      {
+        "urgencia": 3,
+        "impacto": 3,
+        "prioridade": 3,
+        "rotulo": "P3 Média"
+      },
+      {
+        "urgencia": 3,
+        "impacto": 2,
+        "prioridade": 3,
+        "rotulo": "P3 Média"
+      },
+      {
+        "urgencia": 2,
+        "impacto": 5,
+        "prioridade": 4,
+        "rotulo": "P2 Alta"
+      },
+      {
+        "urgencia": 2,
+        "impacto": 4,
+        "prioridade": 3,
+        "rotulo": "P3 Média"
+      },
+      {
+        "urgencia": 2,
+        "impacto": 3,
+        "prioridade": 2,
+        "rotulo": "P4 Baixa"
+      },
+      {
+        "urgencia": 2,
+        "impacto": 2,
+        "prioridade": 2,
+        "rotulo": "P4 Baixa"
+      },
+      {
+        "urgencia": 1,
+        "impacto": 2,
+        "prioridade": 1,
+        "rotulo": "P5 Muito baixa"
+      },
+      {
+        "urgencia": 1,
+        "impacto": 3,
+        "prioridade": 2,
+        "rotulo": "P4 Baixa"
+      }
     ]
   },
-
   "sla": {
     "status": "proposta-aguardando-aprovacao",
     "aprovador_pendente": "Fabia Garcia e/ou Ricardo",
     "calendario": "Comercial Homy - TI",
     "observacao_tto": "Nao chamar TTO de 'primeira resposta' antes de testar qual evento encerra o relogio na 11.0.8 instalada.",
     "niveis": [
-      { "prioridade": "P1 Crítica",     "glpi_priority": 5, "tto_min": 15,  "ttr_min_uteis": 240,  "ttr_dias_uteis_equiv": 0.42 },
-      { "prioridade": "P2 Alta",        "glpi_priority": 4, "tto_min": 60,  "ttr_min_uteis": 480,  "ttr_dias_uteis_equiv": 0.85 },
-      { "prioridade": "P3 Média",       "glpi_priority": 3, "tto_min": 240, "ttr_min_uteis": 960,  "ttr_dias_uteis_equiv": 1.70 },
-      { "prioridade": "P4 Baixa",       "glpi_priority": 2, "tto_min": 480, "ttr_min_uteis": 2400, "ttr_dias_uteis_equiv": 4.25 },
-      { "prioridade": "P5 Muito baixa", "glpi_priority": 1, "tto_min": 480, "ttr_min_uteis": 4800, "ttr_dias_uteis_equiv": 8.50 }
+      {
+        "prioridade": "P1 Crítica",
+        "glpi_priority": 5,
+        "tto_min": 15,
+        "ttr_min_uteis": 240,
+        "ttr_dias_uteis_equiv": 0.42
+      },
+      {
+        "prioridade": "P2 Alta",
+        "glpi_priority": 4,
+        "tto_min": 60,
+        "ttr_min_uteis": 480,
+        "ttr_dias_uteis_equiv": 0.85
+      },
+      {
+        "prioridade": "P3 Média",
+        "glpi_priority": 3,
+        "tto_min": 240,
+        "ttr_min_uteis": 960,
+        "ttr_dias_uteis_equiv": 1.7
+      },
+      {
+        "prioridade": "P4 Baixa",
+        "glpi_priority": 2,
+        "tto_min": 480,
+        "ttr_min_uteis": 2400,
+        "ttr_dias_uteis_equiv": 4.25
+      },
+      {
+        "prioridade": "P5 Muito baixa",
+        "glpi_priority": 1,
+        "tto_min": 480,
+        "ttr_min_uteis": 4800,
+        "ttr_dias_uteis_equiv": 8.5
+      }
     ],
     "nota_dias_equivalentes": "Calculado sobre 565 min/dia util (07:45-17:10 sem intervalo). Se um intervalo de almoco de 1h for excluido, o dia util cai para 505 min e todos os equivalentes sobem cerca de 12%.",
     "escalonamento": [
-      { "percentual": 50,  "acao": "Notificar grupo atribuido" },
-      { "percentual": 75,  "acao": "Notificar grupo atribuido + Duda + gestao (TI | Gestão)" },
-      { "percentual": 100, "acao": "Notificar TI | Gestão e marcar como vencido" }
+      {
+        "percentual": 50,
+        "acao": "Notificar grupo atribuido"
+      },
+      {
+        "percentual": 75,
+        "acao": "Notificar grupo atribuido + Duda + gestao (TI | Gestão)"
+      },
+      {
+        "percentual": 100,
+        "acao": "Notificar TI | Gestão e marcar como vencido"
+      }
     ],
     "regra": "Alerta de SLA nunca vai ao solicitante."
   },
-
   "pending_reasons": [
     "Aguardando solicitante",
     "Aguardando fornecedor",
@@ -136,28 +429,89 @@
     "Aguardando aprovação",
     "Aguardando agendamento com o usuário"
   ],
-
   "planner_status_map": {
     "origem": "Buckets confirmados por Duda em 19/08/2026 (decisao arquitetural de 09/03/2026)",
     "mapa": [
-      { "bucket": "INFRA",                                   "glpi_status": "Novo",         "grupo": "TI | Infraestrutura" },
-      { "bucket": "INFRA (Em Andamento)",                    "glpi_status": "Processando (atribuído)", "grupo": "TI | Infraestrutura" },
-      { "bucket": "INFRA (Concluído)",                       "glpi_status": "Solucionado",  "grupo": "TI | Infraestrutura" },
-      { "bucket": "SISTEMAS (Protheus / Fluig / Transmite)", "glpi_status": "Novo",         "grupo": "TI | Sistemas Protheus" },
-      { "bucket": "SISTEMAS (Em Andamento)",                 "glpi_status": "Processando (atribuído)", "grupo": "TI | Sistemas Protheus" },
-      { "bucket": "SISTEMAS (Concluído)",                    "glpi_status": "Solucionado",  "grupo": "TI | Sistemas Protheus" }
+      {
+        "bucket": "INFRA",
+        "glpi_status": "Novo",
+        "grupo": "TI | Infraestrutura"
+      },
+      {
+        "bucket": "INFRA (Em Andamento)",
+        "glpi_status": "Processando (atribuído)",
+        "grupo": "TI | Infraestrutura"
+      },
+      {
+        "bucket": "INFRA (Concluído)",
+        "glpi_status": "Solucionado",
+        "grupo": "TI | Infraestrutura"
+      },
+      {
+        "bucket": "SISTEMAS (Protheus / Fluig / Transmite)",
+        "glpi_status": "Novo",
+        "grupo": "TI | Sistemas Protheus"
+      },
+      {
+        "bucket": "SISTEMAS (Em Andamento)",
+        "glpi_status": "Processando (atribuído)",
+        "grupo": "TI | Sistemas Protheus"
+      },
+      {
+        "bucket": "SISTEMAS (Concluído)",
+        "glpi_status": "Solucionado",
+        "grupo": "TI | Sistemas Protheus"
+      }
     ],
     "nota": "O conjunto de 7 buckets do DOC v2.0 de Janeiro/2026 (Nao Atendidos, Pausado, Aguardando Manutencao Interna/Externa, Aguardando Suprimentos, Resolvido) foi substituido. Seus estados de espera sobrevivem no GLPI como motivos de pendencia, nao como status."
   },
-
   "brand": {
     "background": "#262626",
     "accent": "#ff5b68",
     "information": "#73b7ef",
     "neutral": "#8b8c8f",
-    "web_fonts": ["Barlow", "Barlow Condensed"],
-    "email_fonts": ["Arial", "Helvetica", "sans-serif"],
+    "web_fonts": [
+      "Barlow",
+      "Barlow Condensed"
+    ],
+    "email_fonts": [
+      "Arial",
+      "Helvetica",
+      "sans-serif"
+    ],
     "logo": "https://chamados.homyquimica.com.br/email-assets/logo-homy.png",
     "banner": "https://chamados.homyquimica.com.br/email-assets/banner-homy.gif"
+  },
+  "reconciliacao": {
+    "motivo": "Objetos criados antes deste blueprint ficaram com o nome sem acento, e a categoria de sistemas nasceu como folha unica em vez de raiz de uma arvore. Renomear preserva o id, o historico e qualquer vinculo; criar com o nome novo produziria duplicata e deixaria o objeto antigo orfao.",
+    "verificado_em": "2026-08-19",
+    "seguro_porque": "Havia 1 chamado no GLPI, fechado e sem categoria, e nenhum ativo, documento ou base de conhecimento. Renomear agora nao afeta registro nenhum.",
+    "ordem": "Executado ANTES de grupos e categorias, senao o passo seguinte cria a duplicata que esta reconciliacao existe para evitar.",
+    "renomear": [
+      {
+        "itemtype": "Group",
+        "de": "TI | Microsoft 365 e Automacao",
+        "para": "TI | Microsoft 365 e Automação",
+        "motivo": "grafia sem acento"
+      },
+      {
+        "itemtype": "Group",
+        "de": "TI | Gestao",
+        "para": "TI | Gestão",
+        "motivo": "grafia sem acento"
+      },
+      {
+        "itemtype": "ITILCategory",
+        "de": "Microsoft 365 e Automacao",
+        "para": "Microsoft 365 e Automação",
+        "motivo": "grafia sem acento"
+      },
+      {
+        "itemtype": "ITILCategory",
+        "de": "Sistemas (Protheus, Fluig, Transmite)",
+        "para": "Sistemas",
+        "motivo": "vira raiz da arvore Sistemas > Protheus / Fluig / Transmite / Outro sistema; os tres sistemas passam a ser filhos em vez de estarem no nome do pai"
+      }
+    ]
   }
 }
