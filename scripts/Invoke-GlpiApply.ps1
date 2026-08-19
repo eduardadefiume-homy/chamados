@@ -33,11 +33,21 @@ Import-Module (Join-Path $PSScriptRoot 'GlpiApi.psm1') -Force
 
 if (-not (Test-Path $BlueprintPath)) { throw "Blueprint nao encontrado: $BlueprintPath" }
 $bp = Get-Content $BlueprintPath -Raw -Encoding UTF8 | ConvertFrom-Json
-if (-not (Test-Path $OutputPath)) { New-Item -ItemType Directory -Path $OutputPath -Force | Out-Null }
+# -WhatIf vale para o GLPI, nao para o relatorio local: o diff e justamente o
+# produto da simulacao e precisa ser gravado nos dois modos.
+if (-not (Test-Path $OutputPath)) { New-Item -ItemType Directory -Path $OutputPath -Force -WhatIf:$false -Confirm:$false | Out-Null }
 
 $stamp   = Get-Date -Format 'yyyyMMdd-HHmmss'
 $changes = [System.Collections.Generic.List[object]]::new()
 function Add-Change { param($r) if ($r) { $changes.Add($r); Write-Host ("  [{0,-18}] {1} :: {2}" -f $r.Action, $r.ItemType, $r.Name) } }
+
+function Get-Prop {
+    <# Leitura tolerante de propriedade sob Set-StrictMode. #>
+    param([object]$Object, [string]$Name, $Default = $null)
+    if ($null -eq $Object) { return $Default }
+    if ($Object.PSObject.Properties.Name -contains $Name) { return $Object.$Name }
+    return $Default
+}
 
 try {
     New-GlpiSession -BaseUrl $BaseUrl | Out-Null
@@ -56,22 +66,57 @@ try {
 
     # ---------- 1. ENTIDADES ----------
     Write-Host "`n=== 1. ENTIDADES ===" -ForegroundColor Cyan
-    $entCache = Get-GlpiItems -ItemType 'Entity'
+    $entCache = Get-GlpiItems -ItemType 'Entity' -Recursive
     $entIds   = @{}
+    $rootName = $null
     foreach ($e in $bp.entities) {
-        if ($e.phase -eq 'futura') { Write-Host "  [pulado           ] Entity :: $($e.name) (fase futura)"; continue }
+        if ((Get-Prop $e 'phase') -eq 'futura') { Write-Host "  [pulado           ] Entity :: $($e.name) (fase futura)"; continue }
+
+        # A raiz do GLPI e SEMPRE a entidade id 0. Ela existe desde a instalacao e nao
+        # pode ser criada: criar um objeto com o nome dela produziria uma segunda
+        # entidade de nivel 2 e penduraria toda a arvore no lugar errado.
+        if ((Get-Prop $e 'role') -eq 'raiz') {
+            $rootName = $e.name
+            $root = @($entCache | Where-Object { [int](Get-Prop $_ 'id' -1) -eq 0 })
+            if ($root.Count -eq 0) {
+                throw "Entidade raiz (id 0) nao visivel para esta conta. O perfil precisa ser recursivo na raiz."
+            }
+            $nomeAtual = Get-Prop $root[0] 'name' ''
+            if ($nomeAtual -ne $e.name) {
+                if ($PSCmdlet.ShouldProcess("Entity raiz (id 0), hoje '$nomeAtual'", "RENOMEAR para '$($e.name)'")) {
+                    Invoke-GlpiRequest -Path 'Entity' -Method Put -Body @{ input = @{ id = 0; name = $e.name } } | Out-Null
+                    Add-Change ([pscustomobject]@{ ItemType = 'Entity'; Name = $e.name; Id = 0; Action = 'Renomeado'; Changed = "name: '$nomeAtual' -> '$($e.name)'" })
+                } else {
+                    Add-Change ([pscustomobject]@{ ItemType = 'Entity'; Name = $e.name; Id = 0; Action = 'Renomearia (WhatIf)'; Changed = "name: '$nomeAtual' -> '$($e.name)'" })
+                }
+            } else {
+                Add-Change ([pscustomobject]@{ ItemType = 'Entity'; Name = $e.name; Id = 0; Action = 'Inalterado'; Changed = '' })
+            }
+            $entIds[$e.name] = 0
+            continue
+        }
+
         $fields = @{ name = $e.name }
-        if ($e.PSObject.Properties.Name -contains 'parent' -and $e.parent) {
-            $parent = Find-GlpiItem -ItemType 'Entity' -Name $e.parent -Cache $entCache
-            if ($null -eq $parent) { throw "Entidade pai '$($e.parent)' nao existe. Crie a raiz antes." }
-            $fields['entities_id'] = $parent.id
+        $parentName = Get-Prop $e 'parent'
+        if ($parentName) {
+            # Em -WhatIf a raiz ainda nao foi renomeada; resolver primeiro pelo que ja
+            # sabemos desta execucao, e so depois procurar no GLPI por nome.
+            if ($entIds.ContainsKey($parentName)) {
+                $fields['entities_id'] = $entIds[$parentName]
+            } else {
+                $parent = Find-GlpiItem -ItemType 'Entity' -Name $parentName -Cache $entCache
+                if ($null -eq $parent) { throw "Entidade pai '$parentName' nao existe e nao foi declarada como raiz no blueprint." }
+                $fields['entities_id'] = $parent.id
+            }
         }
         $r = Set-GlpiItemIdempotent -ItemType 'Entity' -Fields $fields -Cache $entCache
         Add-Change $r
         if ($r.Id) { $entIds[$e.name] = $r.Id }
     }
-    $entCache = Get-GlpiItems -ItemType 'Entity'
-    foreach ($e in $entCache) { if ($e.PSObject.Properties.Name -contains 'name') { $entIds[$e.name] = $e.id } }
+    $entCache = Get-GlpiItems -ItemType 'Entity' -Recursive
+    foreach ($e in $entCache) { $n = Get-Prop $e 'name'; if ($n) { $entIds[$n] = $e.id } }
+    # A raiz e id 0 mesmo que ainda nao tenha sido renomeada nesta simulacao.
+    if ($rootName) { $entIds[$rootName] = 0 }
 
     $tiEntity = if ($entIds.ContainsKey('Service Desk - TI')) { $entIds['Service Desk - TI'] } else { 0 }
     $rootEnt  = if ($entIds.ContainsKey('Homy Química'))      { $entIds['Homy Química'] }      else { 0 }
@@ -125,16 +170,34 @@ try {
             name = $c.name; entities_id = $tiEntity; is_recursive = 1
         } -EntityId $tiEntity -Cache $catCache
         Add-Change $r
+        $filhos = @(Get-Prop $c 'children' @())
+        if ($filhos.Count -eq 0) { continue }
+
         $catCache = Get-GlpiItems -ItemType 'ITILCategory'
         $parent = Find-GlpiItem -ItemType 'ITILCategory' -Name $c.name -EntityId $tiEntity -Cache $catCache
-        if ($null -ne $parent -and $c.children) {
-            foreach ($child in $c.children) {
-                Add-Change (Set-GlpiItemIdempotent -ItemType 'ITILCategory' -Fields @{
-                    name = $child; entities_id = $tiEntity; is_recursive = 1; itilcategories_id = $parent.id
-                } -EntityId $tiEntity -Cache $catCache)
+
+        if ($null -eq $parent) {
+            # Em -WhatIf o pai nao chegou a ser criado de verdade. Sem este ramo a
+            # simulacao esconderia os filhos e o diff mentiria sobre o tamanho da
+            # mudanca — 12 linhas no lugar de 30.
+            if ($r.Action -notlike '*WhatIf*') {
+                throw "Categoria pai '$($c.name)' nao foi encontrada apos a criacao. Interrompendo antes de criar filhos orfaos."
             }
-            $catCache = Get-GlpiItems -ItemType 'ITILCategory'
+            foreach ($child in $filhos) {
+                Add-Change ([pscustomobject]@{
+                    ItemType = 'ITILCategory'; Name = "$($c.name) > $child"; Id = $null
+                    Action = 'Criaria (WhatIf)'; Changed = 'name,entities_id,is_recursive,itilcategories_id'
+                })
+            }
+            continue
         }
+
+        foreach ($child in $filhos) {
+            Add-Change (Set-GlpiItemIdempotent -ItemType 'ITILCategory' -Fields @{
+                name = $child; entities_id = $tiEntity; is_recursive = 1; itilcategories_id = $parent.id
+            } -EntityId $tiEntity -Cache $catCache)
+        }
+        $catCache = Get-GlpiItems -ItemType 'ITILCategory'
     }
 
     # ---------- 6. CALENDARIO ----------
@@ -206,8 +269,8 @@ try {
     # ---------- RELATORIO ----------
     $diffFile  = Join-Path $OutputPath "diferencas-$stamp.csv"
     $auditFile = Join-Path $OutputPath "audit-$stamp.csv"
-    $changes | Export-Csv -Path $diffFile -NoTypeInformation -Encoding UTF8
-    Get-GlpiAuditLog | Export-Csv -Path $auditFile -NoTypeInformation -Encoding UTF8
+    $changes | Export-Csv -Path $diffFile -NoTypeInformation -Encoding UTF8 -WhatIf:$false -Confirm:$false
+    Get-GlpiAuditLog | Export-Csv -Path $auditFile -NoTypeInformation -Encoding UTF8 -WhatIf:$false -Confirm:$false
 
     Write-Host "`n=== RESUMO ===" -ForegroundColor Green
     $changes | Group-Object Action | Sort-Object Name | ForEach-Object { Write-Host ("  {0,-20} {1}" -f $_.Name, $_.Count) }
